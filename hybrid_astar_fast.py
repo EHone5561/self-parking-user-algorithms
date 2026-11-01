@@ -14,12 +14,14 @@ import math
 from hybrid_astar_planner import PATH_RES, HybridAStarPlanner, _wrap
 
 V_MAX_FWD, V_MAX_REV = 8.0, 4.0   # m/s
-A_LAT = 3.5                       # 곡선 횡가속도 한계 (m/s²): v² × 곡률
-DECEL = 5.0                       # 정지·감속에 쓰는 감속도 (m/s²); 최대 제동은 7
+A_LAT = 4.5                       # 곡선 횡가속도 한계 (m/s²): v² × 곡률
+DECEL = 6.0                       # 정지·감속에 쓰는 감속도 (m/s²); 최대 제동은 7
 CURVE_WINDOW = 8                  # 곡률을 앞뒤 0.8m 범위 최댓값으로 (조향 지연 대비)
 
 
 class FastHybridAStarPlanner(HybridAStarPlanner):
+    h_weight = 1.2                # 휴리스틱 가중치를 낮춰 더 짧은 경로 (기본 1.6)
+
     def _plan(self, obs: Dict[str, Any]) -> None:
         super()._plan(obs)
         self.profiles = [self._profile(seg, d) for seg, d in zip(self.segments, self.dirs)]

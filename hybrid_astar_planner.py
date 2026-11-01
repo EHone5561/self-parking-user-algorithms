@@ -63,6 +63,13 @@ def _wrap(a: float) -> float:
 
 
 class HybridAStarPlanner:
+    # 탐색 비용 (하위 클래스에서 바꿀 수 있게 속성으로 둠)
+    reverse_cost = REVERSE_COST
+    gear_cost = GEAR_COST
+    steer_cost = STEER_COST
+    steer_change_cost = STEER_CHANGE_COST
+    h_weight = H_WEIGHT
+
     def __init__(self) -> None:
         self.map: Optional[Dict[str, Any]] = None
         self.worker: Optional[threading.Thread] = None
@@ -239,7 +246,7 @@ class HybridAStarPlanner:
         # 노드: (x, y, yaw, 방향, 조향, 부모, 부모→여기 경로점들)
         nodes = [(start[0], start[1], start[2], 1, 0.0, -1, [])]
         g_cost = {self._key(*start): 0.0}
-        heap = [(H_WEIGHT * self._h(start[0], start[1], goal), 0.0, 0)]
+        heap = [(self.h_weight * self._h(start[0], start[1], goal), 0.0, 0)]
         closed = set()
         expanded = 0
         while heap and expanded < MAX_EXPAND:
@@ -266,15 +273,15 @@ class HybridAStarPlanner:
                     nkey = self._key(nx, ny, nyaw)
                     if nkey in closed:
                         continue
-                    cost = STEP * (REVERSE_COST if direction < 0 else 1.0)
-                    cost += STEER_COST * abs(ratio) + STEER_CHANGE_COST * abs(steer - st) / max_steer
+                    cost = STEP * (self.reverse_cost if direction < 0 else 1.0)
+                    cost += self.steer_cost * abs(ratio) + self.steer_change_cost * abs(steer - st) / max_steer
                     if direction != d and i != 0:
-                        cost += GEAR_COST
+                        cost += self.gear_cost
                     ng = g + cost
                     if ng < g_cost.get(nkey, float("inf")):
                         g_cost[nkey] = ng
                         nodes.append((nx, ny, nyaw, direction, steer, i, pts))
-                        heapq.heappush(heap, (ng + H_WEIGHT * self._h(nx, ny, goal), ng, len(nodes) - 1))
+                        heapq.heappush(heap, (ng + self.h_weight * self._h(nx, ny, goal), ng, len(nodes) - 1))
         return None, expanded
 
     @staticmethod
